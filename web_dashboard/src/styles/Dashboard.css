@@ -1,0 +1,320 @@
+/* Page wrapper */
+.page {
+  min-height: 100%;
+  padding: 24px 24px 40px;
+  background: #f8fafc;
+}
+
+/* Top header */
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.page-head h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px;
+}
+
+.page-head p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.page-date {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.page-head-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-box {
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+}
+
+.search-box input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+  color: #111827;
+  width: 220px;
+}
+
+.search-box input::placeholder {
+  color: #9ca3af;
+}
+
+.head-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.head-icon-btn:hover {
+  background: #f3f4f6;
+  transform: scale(1.05);
+}
+
+/* Stat cards grid */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.mt-24 {
+  margin-top: 24px;
+}
+
+/* Stat card styles with conditional hover */
+.stat-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 18px 18px 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+/* Green hover for green accent cards */
+.stat-card[data-accent="green"]:hover {
+  border: 2px solid #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Orange hover for warning cards */
+.stat-card[data-accent="orange"]:hover {
+  border: 2px solid #f97316;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Blue hover for informational cards */
+.stat-card[data-accent="blue"]:hover {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Red hover for critical cards */
+.stat-card[data-accent="red"]:hover {
+  border: 2px solid #ef4444;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+  transform: translateY(-4px);
+}
+
+.stat-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.stat-card-text {
+  flex: 1;
+}
+
+.stat-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  display: block;
+}
+
+.stat-card-subtitle {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.stat-card-icon-pill {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.stat-card-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.stat-card-badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* Chart cards row */
+.charts-wrap {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.charts-wrap-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+/* Chart card with conditional hover */
+.dashboard-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 18px 18px 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+/* Green hover for green theme charts */
+.dashboard-card[data-theme="green"]:hover {
+  border: 2px solid #10b981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Orange hover for warning/monitoring charts */
+.dashboard-card[data-theme="orange"]:hover {
+  border: 2px solid #f97316;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+  transform: translateY(-4px);
+}
+
+/* Blue hover for informational charts */
+.dashboard-card[data-theme="blue"]:hover {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-4px);
+}
+
+.chart-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.chart-card-head h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.chart-card-head p {
+  margin: 0;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.chart-container {
+  height: 260px;
+  position: relative;
+}
+
+/* Chip/Badge Styles */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.chip-green {
+  background: #dcfce7;
+  color: #059669;
+}
+
+.chip-blue {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.chip-orange {
+  background: #fed7aa;
+  color: #ea580c;
+}
+
+.chip-purple {
+  background: #e9d5ff;
+  color: #9333ea;
+}
+
+/* Responsive Design */
+@media (max-width: 1280px) {
+  .grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .charts-wrap {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-3,
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  .charts-wrap,
+  .charts-wrap-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .page {
+    padding: 16px;
+  }
+}

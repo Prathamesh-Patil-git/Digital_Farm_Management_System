@@ -1,0 +1,436 @@
+/* --------------------------------------------- */
+/* ✅ GLOBAL THEME VARIABLES (LIGHT MODE DEFAULT) */
+/* --------------------------------------------- */
+:root {
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-accent: #1d4ed8;
+
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+
+  --border-light: #e2e8f0;
+
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+
+  --shadow-soft: 0 2px 8px rgba(0,0,0,0.05);
+  --shadow-medium: 0 4px 14px rgba(0,0,0,0.08);
+
+  --card-bg: #ffffff;
+}
+
+/* ✅ DARK MODE OVERRIDES */
+[data-theme="dark"] {
+  --bg-main: #0f172a;
+  --bg-card: #1e293b;
+
+  --text-main: #e5e7eb;
+  --text-muted: #94a3b8;
+}
+
+/* Smooth transitions */
+* {
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* --------------------------------------------- */
+/* ✅ GENERAL PAGE SETTINGS */
+/* --------------------------------------------- */
+html, body {
+  margin: 0;
+  overflow: hidden;     /* ✅ Removes full-page scrollbar */
+  height: 100%;
+}
+
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: Inter, system-ui, sans-serif;
+}
+
+/* --------------------------------------------- */
+/* ✅ LAYOUT */
+/* --------------------------------------------- */
+.app-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+}
+
+/* --------------------------------------------- */
+/* ✅ CONTENT AREA (scroll only here) */
+/* --------------------------------------------- */
+.content {
+  height: 100vh;
+  overflow-y: auto;
+  padding: 30px;
+  background: var(--bg-main);
+}
+
+/* --------------------------------------------- */
+/* ✅ PAGE HEADERS */
+/* --------------------------------------------- */
+.page-head h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+.page-head p {
+  margin: 0 0 25px;
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------- */
+/* ✅ STAT CARDS */
+/* --------------------------------------------- */
+.stat-card {
+  background: var(--card-bg);
+  padding: 20px;
+  border-radius: 14px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-soft);
+  transition: 0.25s ease;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+.stat-title {
+  color: var(--text-muted);
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+/* --------------------------------------------- */
+/* ✅ GRID SYSTEM */
+/* --------------------------------------------- */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.mt {
+  margin-top: 22px;
+}
+
+/* --------------------------------------------- */
+/* ✅ CHART CARD BASE */
+/* --------------------------------------------- */
+.chart-card,
+.dashboard-card {
+  background: var(--card-bg);
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-soft);
+  transition: all 0.25s ease-in-out;
+}
+
+/* ✅ Chart Title */
+.chart-title {
+  margin-bottom: 12px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* --------------------------------------------- */
+/* ✅ CHART GRID (3 cards side by side) */
+/* --------------------------------------------- */
+.charts-wrap {
+  margin-top: 26px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;       /* ✅ spacing between chart cards */
+}
+
+/* --------------------------------------------- */
+/* ✅ HOVER GLOW EFFECT */
+/* --------------------------------------------- */
+.chart-card:hover,
+.dashboard-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 25px rgba(50, 210, 231, 0.879);
+  border-color: rgba(27, 192, 200, 0.766);
+}
+
+.chart-card *,
+.dashboard-card * {
+  transition: inherit;
+}
+
+/* --------------------------------------------- */
+/* ✅ FORM CARDS (Used in Treatment Log + Farmers) */
+/* --------------------------------------------- */
+.form-card {
+  background: var(--card-bg);
+  padding: 22px;
+  border-radius: 14px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 25px;
+}
+
+/* Title inside card */
+.form-card h3 {
+  margin: 0 0 18px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Inputs */
+.form-input {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background: #f1f5f9;
+  font-size: 15px;
+  outline: none;
+  width: 100%;
+}
+
+/* Input row */
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+/* Buttons */
+.btn-search {
+  background: var(--bg-accent);
+  border: none;
+  padding: 0 22px;
+  border-radius: 10px;
+  color: white;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  height: 44px;
+}
+
+.btn-search:hover {
+  background: #1e40af;
+}
+
+/* --------------------------------------------- */
+/* ✅ TABLE CARD (Treatment Log Table) */
+/* --------------------------------------------- */
+.table-card {
+  background: var(--card-bg);
+  padding: 0;
+  border-radius: 14px;
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+}
+
+.table-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-card thead tr {
+  background: #f8fafc;
+  text-align: left;
+  font-size: 14px;
+  color: #475569;
+}
+
+.table-card th {
+  padding: 14px 18px;
+}
+
+.table-card td {
+  padding: 14px 18px;
+  color: var(--text-muted);
+}
+
+/* Empty state */
+.table-empty {
+  padding: 40px 10px;
+  text-align: center;
+  color: #64748b;
+}
+
+/* --------------------------------------------- */
+/* ✅ TOP PAGE GAP FIX */
+/* --------------------------------------------- */
+.page-head {
+  margin-bottom: 20px;
+}
+
+/* --------------------------------------------- */
+/* ✅ HOVER EFFECT FOR TOP STAT CARDS */
+/* --------------------------------------------- */
+
+.stat-card {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid rgba(180, 180, 200, 0.25);
+  box-shadow: var(--shadow-soft);
+  transition: all 0.25s ease-in-out;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 25px rgba(38, 212, 222, 0.69);
+  border-color: rgba(34, 194, 222, 0.958);
+}
+
+.stat-card * {
+  transition: inherit;
+}
+
+/* -------------------------------------------------- */
+/* ✅ LOGIN CARD GLOW EFFECT */
+/* -------------------------------------------------- */
+
+.login-card {
+  background: var(--card-bg);
+  padding: 35px 40px;
+  border-radius: 18px;
+  border: 1px solid rgba(200, 200, 220, 0.35);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  transition: all 0.3s ease-in-out;
+}
+
+/* ✅ Soft hover glow */
+.login-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 45px rgba(0, 80, 255, 0.25);
+  border-color: rgba(120, 120, 255, 0.45);
+}
+
+/* ✅ Smooth transition for inner elements */
+.login-card * {
+  transition: inherit;
+}
+
+/* container cards */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* tabs */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  cursor: pointer;
+}
+.tab.active {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59,130,246,.35);
+}
+
+/* search */
+.search-card { padding: 12px 14px; }
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f1f5f9;
+  border: 1px solid var(--border-light);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-main);
+}
+
+/* table */
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border-light);
+  text-align: left;
+}
+.table thead th { font-weight: 600; color: var(--text-main); }
+
+.col-main .title { font-weight: 600; }
+.col-main .sub { color: var(--text-muted); font-size: 12px; }
+.bad { color: #ef4444; font-weight: 700; }
+
+/* badges */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.badge-pending    { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
+.badge-verified   { background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; }
+.badge-rejected   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.badge-suspended  { background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; }
+
+/* actions */
+.row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 600;
+}
+.btn-approve { background: #16a34a; }
+.btn-reject  { background: #ef4444; }
+.btn-warn    { background: #f59e0b; color: #111827; }
+.btn-secondary { background: #475569; }
+.link { color: #2563eb; background: none; border: none; cursor: pointer; }
+
+/* empty */
+.empty { color: var(--text-muted); padding: 6px 2px; }
+
+/* modal */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.3);
+  display: grid; place-items: center;
+  z-index: 50;
+}
+.modal {
+  width: 520px;
+  background: var(--card-bg);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.25);
+  padding: 20px;
+}
+.doc-list { margin: 10px 0 16px; }
+.doc-list li { margin: 6px 0; }
+
+.card.glow {
+  box-shadow: 0 12px 40px rgba(34,197,255,0.18), var(--shadow-soft);
+}
