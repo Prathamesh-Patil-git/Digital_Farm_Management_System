@@ -20,8 +20,8 @@ import {
   Area,
 } from "recharts";
 import "../styles/Dashboard.css";
-import { 
-  dashboardAPI, 
+import {
+  dashboardAPI,
   generateMockData,
   OverviewData,
   SimplifiedDashboard,
@@ -82,7 +82,7 @@ interface ChartDataState {
   pieData: PieDataPoint[];
   complianceData: ComplianceDataPoint[];
   vetActivityData: VetActivityDataPoint[];
-  medicineUsage: Array<{medicine: string; count: number}>;
+  medicineUsage: Array<{ medicine: string; count: number }>;
 }
 
 export default function Dashboard() {
@@ -90,7 +90,7 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [apiStatus, setApiStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
   const [dashboardData, setDashboardData] = useState<SimplifiedDashboard>(DEFAULT_DASHBOARD_DATA);
-  
+
   const [chartData, setChartData] = useState<ChartDataState>({
     lineData: DEFAULT_DASHBOARD_DATA.charts.treatment_trends,
     barData: DEFAULT_DASHBOARD_DATA.charts.animals_by_species,
@@ -99,7 +99,7 @@ export default function Dashboard() {
     vetActivityData: [],
     medicineUsage: []
   });
-  
+
   const today = new Date().toLocaleDateString("en-IN", {
     weekday: "long",
     month: "long",
@@ -111,28 +111,28 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     setApiStatus('checking');
-    
+
     try {
       // First, test if API is connected
       const isConnected = await testApiConnection();
       setApiStatus(isConnected ? 'connected' : 'disconnected');
-      
+
       if (isConnected) {
         try {
           console.log('📡 API connected, fetching dashboard data...');
-          
+
           // Get simplified dashboard data (all in one call)
           const response = await dashboardAPI.getSimplifiedDashboard();
           const simplifiedData = response?.data ?? response;
-          
+
           if (simplifiedData && simplifiedData.overview) {
             setDashboardData(simplifiedData);
           } else {
             console.error("Invalid dashboard response:", response);
             throw new Error("Invalid dashboard data received");
           }
-          
-          
+
+
           // Try to fetch individual chart data (but don't fail if some fail)
           const fetchPromises = [
             dashboardAPI.getTreatmentTrends().catch(() => simplifiedData.charts.treatment_trends),
@@ -144,18 +144,18 @@ export default function Dashboard() {
             dashboardAPI.getDailyTreatments().catch(() => ({ today_treatments: simplifiedData.today_treatments || 0 })),
             dashboardAPI.getViolations().catch(() => [])
           ];
-          
+
           const [
-            treatmentTrends, 
-            animalsBySpecies, 
-            farmSafetyStatus, 
-            complianceData, 
+            treatmentTrends,
+            animalsBySpecies,
+            farmSafetyStatus,
+            complianceData,
             vetActivity,
             medicineUsage,
             dailyTreatments,
             violations
           ] = await Promise.all(fetchPromises);
-          
+
           // Set all chart data
           setChartData({
             lineData: Array.isArray(treatmentTrends) ? treatmentTrends : [],
@@ -165,15 +165,15 @@ export default function Dashboard() {
             vetActivityData: Array.isArray(vetActivity) ? vetActivity : [],
             medicineUsage: Array.isArray(medicineUsage) ? medicineUsage : []
           });
-          
-          
+
+
           console.log('📊 Data loaded successfully');
-          
+
         } catch (apiError) {
           console.error('Error fetching dashboard data:', apiError);
           setError(`API Error: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`);
           setApiStatus('disconnected');
-          
+
           // Use default data on API error
           setDashboardData(DEFAULT_DASHBOARD_DATA);
           setChartData({
@@ -189,7 +189,7 @@ export default function Dashboard() {
         console.log('🌐 API not reachable, using mock data');
         setError('API server is not reachable. Using mock data.');
         setApiStatus('disconnected');
-        
+
         // Use mock data
         const mockData = generateMockData.mockDashboard();
         setDashboardData(mockData);
@@ -202,12 +202,12 @@ export default function Dashboard() {
           medicineUsage: []
         });
       }
-      
+
     } catch (err) {
       console.error('Unexpected error:', err);
       setError(`Unexpected error: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setApiStatus('disconnected');
-      
+
       // Always fallback to default data
       setDashboardData(DEFAULT_DASHBOARD_DATA);
       setChartData({
@@ -232,7 +232,7 @@ export default function Dashboard() {
         dashboardAPI.getAnimalsBySpecies(),
         dashboardAPI.getFarmSafetyStatus()
       ]);
-      
+
       setChartData(prev => ({
         ...prev,
         lineData: treatmentTrends,
@@ -247,7 +247,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData();
-    
+
     // Auto-refresh every 2 minutes
     const interval = setInterval(fetchDashboardData, 2 * 60 * 1000);
     return () => clearInterval(interval);
@@ -261,7 +261,7 @@ export default function Dashboard() {
   const pendingVerifications = dashboardData?.overview?.pending_verifications || 8;
   const todayTreatments = dashboardData?.today_treatments || 0;
   const violationsCount = dashboardData?.violations_count || 0;
-  
+
   // Calculate safety metrics from dashboard data or use defaults
   const safeFarms = dashboardData?.farm_safety?.safe || Math.floor(totalFarmers * 0.82);
   const underWithdrawal = dashboardData?.farm_safety?.unsafe || totalFarmers - safeFarms;
@@ -270,8 +270,8 @@ export default function Dashboard() {
 
   // Calculate total animals from bar chart data
   const totalAnimalsFromChart = Array.isArray(chartData.barData)
-  ? chartData.barData.reduce((sum, item) => sum + item.count, 0)
-  : 0;
+    ? chartData.barData.reduce((sum, item) => sum + item.count, 0)
+    : 0;
 
   if (loading) {
     return (
@@ -296,15 +296,15 @@ export default function Dashboard() {
           <div className="api-status-indicator">
             <span className={`status-dot ${apiStatus}`}></span>
             <span className="status-text">
-              {apiStatus === 'connected' ? 'Live API Data' : 
-               apiStatus === 'disconnected' ? 'Using Mock Data' : 'Connecting...'}
+              {apiStatus === 'connected' ? 'Live API Data' :
+                apiStatus === 'disconnected' ? 'Using Mock Data' : 'Connecting...'}
             </span>
           </div>
         </div>
 
         <div className="header-actions">
-          <button 
-            className="head-icon-btn refresh-btn" 
+          <button
+            className="head-icon-btn refresh-btn"
             onClick={fetchDashboardData}
             aria-label="Refresh data"
             title="Refresh dashboard data"
@@ -410,8 +410,8 @@ export default function Dashboard() {
             </div>
             <div className="chart-actions">
               <span className="chip chip-green">This year</span>
-              <button 
-                className="chart-refresh-btn" 
+              <button
+                className="chart-refresh-btn"
                 onClick={fetchRealChartData}
                 title="Update chart data"
                 disabled={apiStatus === 'disconnected'}
@@ -577,7 +577,7 @@ export default function Dashboard() {
                       return [`${value}%`, label];
                     }}
                   />
-                  <Legend 
+                  <Legend
                     formatter={(value) => value === 'compliant' ? 'Compliant' : 'Non-Compliant'}
                   />
                   <Area
@@ -660,9 +660,9 @@ export default function Dashboard() {
                 <div key={index} className="medicine-item">
                   <span className="medicine-name">{item.medicine}</span>
                   <div className="medicine-bar">
-                    <div 
-                      className="medicine-fill" 
-                      style={{ 
+                    <div
+                      className="medicine-fill"
+                      style={{
                         width: `${(item.count / Math.max(...chartData.medicineUsage.map(m => m.count), 1)) * 90}%`,
                         backgroundColor: index === 0 ? GREEN_COLOR : BLUE_COLOR
                       }}
@@ -728,16 +728,16 @@ export default function Dashboard() {
               <h3>Development Mode</h3>
             </div>
             <p>
-              The dashboard is currently displaying mock data because the API server 
+              The dashboard is currently displaying mock data because the API server
               is not reachable. This is normal during development.
             </p>
             <div className="info-actions">
               <button onClick={fetchDashboardData} className="btn-primary" disabled={loading}>
                 {loading ? 'Reconnecting...' : 'Try Reconnecting'}
               </button>
-              <a 
-                href="http://127.0.0.1:5000/authority/dashboard/test" 
-                target="_blank" 
+              <a
+                href="http://127.0.0.1:5000/authority/dashboard/test"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="btn-secondary"
               >
