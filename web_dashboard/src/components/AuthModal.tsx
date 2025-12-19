@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/AuthModal.css';
 
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialMode?: 'login' | 'register';
 }
+
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
@@ -17,9 +19,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
 
     // Simulate API call
     setTimeout(() => {
@@ -49,6 +53,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     }, 1500);
   };
 
+
   const resetForm = () => {
     setEmail('');
     setPassword('');
@@ -56,22 +61,27 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     setFullName('');
   };
 
+
   const switchMode = (newMode: 'login' | 'register') => {
     setMode(newMode);
     resetForm();
   };
+
 
   React.useEffect(() => {
     setMode(initialMode);
     resetForm();
   }, [initialMode, isOpen]);
 
+
   if (!isOpen) return null;
+
 
   return (
     <>
       {/* Overlay */}
       <div className="auth-overlay" onClick={onClose} />
+
 
       {/* Modal */}
       <div className="auth-modal">
@@ -80,11 +90,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
           ✕
         </button>
 
+
         {/* Header */}
         <div className="modal-header">
           <h2>Authority Portal</h2>
           <p>Antimicrobial Usage Monitoring System</p>
         </div>
+
 
         {/* Tab Buttons */}
         <div className="auth-tabs">
@@ -104,14 +116,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
           </button>
         </div>
 
-        {/* Test Credentials (only show in login mode) */}
-        {mode === 'login' && (
-          <div className="modal-credentials">
-            <strong>Test Credentials:</strong>
-            <div>Email: admin@amu.gov</div>
-            <div>Password: admin123</div>
-          </div>
-        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="modal-form" key={mode}>
@@ -130,6 +134,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
             </div>
           )}
 
+
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -137,11 +142,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder={mode === 'login' ? 'admin@amu.gov' : 'Enter your email'}
+              placeholder={mode === 'login' ? 'Enter your email' : 'Enter your email'}
               required
               disabled={isLoading}
             />
           </div>
+
 
           <div className="form-group">
             <label htmlFor="password">Password</label>
@@ -155,6 +161,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
               disabled={isLoading}
             />
           </div>
+
 
           {mode === 'register' && (
             <div className="form-group">
@@ -171,6 +178,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
             </div>
           )}
 
+
           <button type="submit" className="modal-submit-btn" disabled={isLoading}>
             {isLoading ? (
               <>
@@ -182,6 +190,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
             )}
           </button>
         </form>
+
 
         {/* Footer */}
         {mode === 'login' && (
@@ -195,5 +204,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
     </>
   );
 };
+
 
 export default AuthModal;
