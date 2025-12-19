@@ -3,6 +3,7 @@ import { FiSearch, FiAlertCircle, FiCheckCircle, FiClock, FiRefreshCw } from "re
 import "../styles/TreatmentLog.css";
 import { dashboardAPI, Treatment as ApiTreatment, Farmer, Animal, Vet } from "../services/api";
 
+
 // Local interface for transformed treatment data
 interface Treatment {
   id: string;
@@ -22,6 +23,7 @@ interface Treatment {
   notes?: string;
 }
 
+
 // Cache for fetched data
 const dataCache: {
   farmers: Map<string, Farmer>;
@@ -33,34 +35,35 @@ const dataCache: {
   vets: new Map()
 };
 
+
 // Helper function to get name from ID with caching
 const getNameFromId = async (
-  id: string, 
+  id: string,
   type: 'farmer' | 'animal' | 'vet'
-): Promise<{name: string, id: string, details?: any}> => {
+): Promise<{ name: string, id: string, details?: any }> => {
   try {
     // Check cache first
     const cacheKey = `${type}:${id}`;
-    
+
     if (type === 'farmer' && dataCache.farmers.has(id)) {
       const farmer = dataCache.farmers.get(id)!;
       return { name: farmer.name || 'Unknown Farmer', id: farmer._id, details: farmer };
     }
-    
+
     if (type === 'animal' && dataCache.animals.has(id)) {
       const animal = dataCache.animals.get(id)!;
-      return { 
-        name: animal.tag_number || `Animal-${id.substring(0, 6)}`, 
+      return {
+        name: animal.tag_number || `Animal-${id.substring(0, 6)}`,
         id: animal._id,
-        details: animal 
+        details: animal
       };
     }
-    
+
     if (type === 'vet' && dataCache.vets.has(id)) {
       const vet = dataCache.vets.get(id)!;
       return { name: vet.name || 'Unknown Vet', id: vet._id, details: vet };
     }
-    
+
     // Fetch from API if not in cache
     switch (type) {
       case 'farmer':
@@ -69,40 +72,40 @@ const getNameFromId = async (
           // Cache all farmers
           farmers.forEach(f => dataCache.farmers.set(f._id, f));
           const farmer = farmers.find(f => f._id === id);
-          return { 
-            name: farmer?.name || 'Unknown Farmer', 
+          return {
+            name: farmer?.name || 'Unknown Farmer',
             id: id,
-            details: farmer 
+            details: farmer
           };
         } catch {
           return { name: 'Unknown Farmer', id };
         }
-        
+
       case 'animal':
         try {
           const animals = await dashboardAPI.getAnimals();
           // Cache all animals
           animals.forEach(a => dataCache.animals.set(a._id, a));
           const animal = animals.find(a => a._id === id);
-          return { 
-            name: animal?.tag_number || `Animal-${id.substring(0, 6)}`, 
+          return {
+            name: animal?.tag_number || `Animal-${id.substring(0, 6)}`,
             id: id,
-            details: animal 
+            details: animal
           };
         } catch {
           return { name: 'Unknown Animal', id };
         }
-        
+
       case 'vet':
         try {
           const vets = await dashboardAPI.getVets();
           // Cache all vets
           vets.forEach(v => dataCache.vets.set(v._id, v));
           const vet = vets.find(v => v._id === id);
-          return { 
-            name: vet?.name || 'Unknown Vet', 
+          return {
+            name: vet?.name || 'Unknown Vet',
             id: id,
-            details: vet 
+            details: vet
           };
         } catch {
           return { name: 'Unknown Vet', id };
@@ -114,25 +117,26 @@ const getNameFromId = async (
   }
 };
 
+
 // Enhanced helper function to transform API treatment to local format
 const transformApiTreatment = async (apiTreatment: any, index: number): Promise<Treatment> => {
   console.log(`Transforming treatment ${index}:`, apiTreatment);
-  
+
   const treatmentDate = new Date(apiTreatment.treatment_start_date || apiTreatment.created_at || new Date());
-  
+
   // Get names from IDs
-  const farmerInfo = apiTreatment.farmer ? 
-    await getNameFromId(apiTreatment.farmer, 'farmer') : 
+  const farmerInfo = apiTreatment.farmer ?
+    await getNameFromId(apiTreatment.farmer, 'farmer') :
     { name: 'Unknown Farmer', id: 'Unknown' };
-    
-  const animalInfo = apiTreatment.animal ? 
-    await getNameFromId(apiTreatment.animal, 'animal') : 
+
+  const animalInfo = apiTreatment.animal ?
+    await getNameFromId(apiTreatment.animal, 'animal') :
     { name: 'Unknown Animal', id: 'Unknown' };
-    
-  const vetInfo = apiTreatment.vet ? 
-    await getNameFromId(apiTreatment.vet, 'vet') : 
+
+  const vetInfo = apiTreatment.vet ?
+    await getNameFromId(apiTreatment.vet, 'vet') :
     { name: 'Unknown Vet', id: 'Unknown' };
-  
+
   // Calculate withdrawal days
   let withdrawalDays = 7; // Default
   if (apiTreatment.withdrawal_ends_on) {
@@ -141,15 +145,15 @@ const transformApiTreatment = async (apiTreatment: any, index: number): Promise<
   } else if (apiTreatment.medicines && apiTreatment.medicines[0]?.withdrawal_days) {
     withdrawalDays = apiTreatment.medicines[0].withdrawal_days;
   }
-  
+
   // Calculate remaining days
   const today = new Date();
-  const withdrawalEndDate = apiTreatment.withdrawal_ends_on ? 
-    new Date(apiTreatment.withdrawal_ends_on) : 
+  const withdrawalEndDate = apiTreatment.withdrawal_ends_on ?
+    new Date(apiTreatment.withdrawal_ends_on) :
     new Date(treatmentDate.getTime() + withdrawalDays * 24 * 60 * 60 * 1000);
-  
+
   const remainingDays = Math.ceil((withdrawalEndDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
-  
+
   // Determine status
   let status: "Active" | "Warning" | "Completed" | "Violation";
   if (apiTreatment.is_flagged_violation) {
@@ -159,11 +163,11 @@ const transformApiTreatment = async (apiTreatment: any, index: number): Promise<
   } else {
     status = "Completed";
   }
-  
+
   // Get medicine details
   let medicineName = "No medicine specified";
   let dosage = "Not specified";
-  
+
   if (apiTreatment.medicines && Array.isArray(apiTreatment.medicines) && apiTreatment.medicines.length > 0) {
     // Handle multiple medicines
     const medicines = apiTreatment.medicines;
@@ -177,15 +181,15 @@ const transformApiTreatment = async (apiTreatment: any, index: number): Promise<
       dosage = "Multiple dosages";
     }
   }
-  
+
   // Get animal type/species
-  const animalType = animalInfo.details?.species || 
-                    (animalInfo.details as any)?.type || 
-                    "Unknown";
-  
+  const animalType = animalInfo.details?.species ||
+    (animalInfo.details as any)?.type ||
+    "Unknown";
+
   // Handle symptoms array
   const symptoms = apiTreatment.symptoms || [];
-  
+
   return {
     id: apiTreatment._id || `T${index + 1}`,
     farmer: farmerInfo.name,
@@ -204,6 +208,7 @@ const transformApiTreatment = async (apiTreatment: any, index: number): Promise<
     notes: apiTreatment.notes
   };
 };
+
 
 // Mock data for fallback
 const mockTreatmentData: Treatment[] = [
@@ -293,46 +298,48 @@ const mockTreatmentData: Treatment[] = [
   }
 ];
 
+
 export default function TreatmentLog() {
   const [farmerId, setFarmerId] = useState("");
   const [animalId, setAnimalId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredData, setFilteredData] = useState<Treatment[]>([]);
-  
+
   // State for API data
   const [treatmentData, setTreatmentData] = useState<Treatment[]>(mockTreatmentData);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [apiStatus, setApiStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
-  
+
   // State for selected treatment details modal
   const [selectedTreatment, setSelectedTreatment] = useState<Treatment | null>(null);
+
 
   // Fetch treatments data from API
   const fetchTreatmentsData = async () => {
     setLoading(true);
     setError(null);
     setApiStatus('checking');
-    
+
     try {
       console.log('📡 Fetching treatments data from API...');
-      
+
       // Test API connection first
       const isConnected = await dashboardAPI.test()
         .then(() => true)
         .catch(() => false);
-      
+
       if (isConnected) {
         console.log('✅ API connected, fetching treatments...');
-        
+
         // Fetch treatments from API
         const apiTreatments = await dashboardAPI.getTreatments();
         console.log('✅ API treatments response:', apiTreatments);
-        
+
         if (Array.isArray(apiTreatments) && apiTreatments.length > 0) {
           // Transform API data to local format with async mapping
           const transformedTreatments: Treatment[] = [];
-          
+
           for (let i = 0; i < apiTreatments.length; i++) {
             try {
               const transformed = await transformApiTreatment(apiTreatments[i], i);
@@ -341,7 +348,7 @@ export default function TreatmentLog() {
               console.error(`Error transforming treatment ${i}:`, transformError);
             }
           }
-          
+
           setTreatmentData(transformedTreatments);
           setFilteredData(transformedTreatments);
           setApiStatus('connected');
@@ -369,33 +376,35 @@ export default function TreatmentLog() {
     }
   };
 
+
   // Fetch data on component mount
   useEffect(() => {
     fetchTreatmentsData();
   }, []);
 
+
   // Filter data based on search criteria
   useEffect(() => {
     if (!treatmentData.length) return;
-    
+
     const filtered = treatmentData.filter((treatment) => {
       const matchesFarmer = farmerId
         ? treatment.farmerId.toLowerCase().includes(farmerId.toLowerCase()) ||
-          treatment.farmer.toLowerCase().includes(farmerId.toLowerCase())
+        treatment.farmer.toLowerCase().includes(farmerId.toLowerCase())
         : true;
-      
+
       const matchesAnimal = animalId
         ? treatment.animalId.toLowerCase().includes(animalId.toLowerCase())
         : true;
 
       const matchesSearch = searchTerm
         ? treatment.farmer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          treatment.farmerId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          treatment.animalId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          treatment.vetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          treatment.medicine.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          treatment.diagnosis?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          treatment.symptoms?.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()))
+        treatment.farmerId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        treatment.animalId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        treatment.vetName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        treatment.medicine.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        treatment.diagnosis?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        treatment.symptoms?.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()))
         : true;
 
       return matchesFarmer && matchesAnimal && matchesSearch;
@@ -404,9 +413,11 @@ export default function TreatmentLog() {
     setFilteredData(filtered);
   }, [farmerId, animalId, searchTerm, treatmentData]);
 
+
   const handleSearch = () => {
     console.log('🔍 Searching treatments...');
   };
+
 
   const handleReset = () => {
     setFarmerId("");
@@ -414,6 +425,7 @@ export default function TreatmentLog() {
     setSearchTerm("");
     setFilteredData(treatmentData);
   };
+
 
   const getStatusBadge = (status: string, remainingDays: number) => {
     switch (status) {
@@ -448,27 +460,32 @@ export default function TreatmentLog() {
     }
   };
 
+
   // Format array fields for display
   const formatArrayField = (arr: any[] | undefined): string => {
     if (!arr || !Array.isArray(arr)) return "None";
     return arr.join(", ");
   };
 
+
   // Open treatment details modal
   const openTreatmentDetails = (treatment: Treatment) => {
     setSelectedTreatment(treatment);
   };
+
 
   // Close treatment details modal
   const closeTreatmentDetails = () => {
     setSelectedTreatment(null);
   };
 
+
   // Calculate statistics
   const activeCount = treatmentData.filter(t => t.status === "Active").length;
   const warningCount = treatmentData.filter(t => t.status === "Warning").length;
   const completedCount = treatmentData.filter(t => t.status === "Completed").length;
   const violationCount = treatmentData.filter(t => t.status === "Violation").length;
+
 
   return (
     <div className="page">
@@ -480,15 +497,15 @@ export default function TreatmentLog() {
           <div className="api-status-indicator">
             <span className={`status-dot ${apiStatus}`}></span>
             <span className="status-text">
-              {apiStatus === 'connected' ? 'Live API Data' : 
-               apiStatus === 'disconnected' ? 'Using Mock Data' : 'Connecting...'}
+              {apiStatus === 'connected' ? 'Live API Data' :
+                apiStatus === 'disconnected' ? 'Using Mock Data' : 'Connecting...'}
             </span>
           </div>
         </div>
-        
+
         <div className="header-actions">
-          <button 
-            className="head-icon-btn refresh-btn" 
+          <button
+            className="head-icon-btn refresh-btn"
             onClick={fetchTreatmentsData}
             aria-label="Refresh data"
             title="Refresh treatment data"
@@ -565,50 +582,42 @@ export default function TreatmentLog() {
         </div>
       </div>
 
-      {/* Search Filters */}
+      {/* Search Filters - CORRECTED STRUCTURE */}
       <div className="form-card">
         <h3>Search Treatments</h3>
 
         <div className="form-row">
-          <div className="form-group">
-            <input
-              className="form-input"
-              placeholder="Search farmer, animal, vet, medicine, symptoms..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-          
-          <div className="form-group">
-            <input
-              className="form-input"
-              placeholder="Farmer ID"
-              value={farmerId}
-              onChange={(e) => setFarmerId(e.target.value)}
-              disabled={loading}
-            />
-          </div>
+          <input
+            className="form-input"
+            placeholder="Search farmer, animal, vet, medicine, symptoms..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            disabled={loading}
+          />
 
-          <div className="form-group">
-            <input
-              className="form-input"
-              placeholder="Animal ID"
-              value={animalId}
-              onChange={(e) => setAnimalId(e.target.value)}
-              disabled={loading}
-            />
-          </div>
+          <input
+            className="form-input"
+            placeholder="Farmer ID"
+            value={farmerId}
+            onChange={(e) => setFarmerId(e.target.value)}
+            disabled={loading}
+          />
 
-          <div className="form-group button-group">
-            <button className="btn-search" onClick={handleSearch} disabled={loading}>
-              <FiSearch /> Search
-            </button>
+          <input
+            className="form-input"
+            placeholder="Animal ID"
+            value={animalId}
+            onChange={(e) => setAnimalId(e.target.value)}
+            disabled={loading}
+          />
 
-            <button className="btn-reset" onClick={handleReset} disabled={loading}>
-              Reset
-            </button>
-          </div>
+          <button className="btn-search" onClick={handleSearch} disabled={loading}>
+            <FiSearch /> Search
+          </button>
+
+          <button className="btn-reset" onClick={handleReset} disabled={loading}>
+            Reset
+          </button>
         </div>
       </div>
 
@@ -621,7 +630,7 @@ export default function TreatmentLog() {
           {animalId && ` for animal "${animalId}"`}
         </p>
         <p className="data-source">
-          Data Source: {apiStatus === 'connected' ? 'Live API' : 'Mock Data'} • 
+          Data Source: {apiStatus === 'connected' ? 'Live API' : 'Mock Data'} •
           Last updated: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </p>
       </div>
@@ -663,7 +672,7 @@ export default function TreatmentLog() {
                   </td>
                   <td>{getStatusBadge(treatment.status, treatment.remainingDays)}</td>
                   <td>
-                    <button 
+                    <button
                       className="btn-view-details"
                       onClick={() => openTreatmentDetails(treatment)}
                     >
@@ -700,7 +709,7 @@ export default function TreatmentLog() {
               <h3>Treatment Details</h3>
               <button className="btn-close" onClick={closeTreatmentDetails}>×</button>
             </div>
-            
+
             <div className="modal-body">
               <div className="details-grid">
                 <div className="detail-item">
@@ -747,17 +756,17 @@ export default function TreatmentLog() {
                   <div className="detail-value">
                     {selectedTreatment.withdrawalDays} days
                     <div className="detail-subtext">
-                      {selectedTreatment.remainingDays > 0 
+                      {selectedTreatment.remainingDays > 0
                         ? `Ends in ${selectedTreatment.remainingDays} days`
                         : selectedTreatment.remainingDays === 0
-                        ? 'Ends today'
-                        : `Ended ${Math.abs(selectedTreatment.remainingDays)} days ago`
+                          ? 'Ends today'
+                          : `Ended ${Math.abs(selectedTreatment.remainingDays)} days ago`
                       }
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <div className="details-section">
                 <h4>Medicine Details</h4>
                 <div className="detail-item full-width">
@@ -769,7 +778,7 @@ export default function TreatmentLog() {
                   <div className="detail-value">{selectedTreatment.dosage}</div>
                 </div>
               </div>
-              
+
               {selectedTreatment.symptoms && selectedTreatment.symptoms.length > 0 && (
                 <div className="details-section">
                   <h4>Symptoms</h4>
@@ -780,14 +789,14 @@ export default function TreatmentLog() {
                   </div>
                 </div>
               )}
-              
+
               {selectedTreatment.diagnosis && (
                 <div className="details-section">
                   <h4>Diagnosis</h4>
                   <div className="diagnosis-text">{selectedTreatment.diagnosis}</div>
                 </div>
               )}
-              
+
               {selectedTreatment.notes && (
                 <div className="details-section">
                   <h4>Notes</h4>
@@ -807,7 +816,7 @@ export default function TreatmentLog() {
             <h3>Treatment Violations Detected</h3>
           </div>
           <p>
-            There {violationCount === 1 ? 'is' : 'are'} {violationCount} treatment{violationCount !== 1 ? 's' : ''} 
+            There {violationCount === 1 ? 'is' : 'are'} {violationCount} treatment{violationCount !== 1 ? 's' : ''}
             flagged for violation. Please review these treatments for compliance issues.
           </p>
           <button className="btn-view-violations" onClick={() => {
