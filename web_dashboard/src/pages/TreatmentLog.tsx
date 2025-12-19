@@ -42,9 +42,6 @@ const getNameFromId = async (
   type: 'farmer' | 'animal' | 'vet'
 ): Promise<{ name: string, id: string, details?: any }> => {
   try {
-    // Check cache first
-    const cacheKey = `${type}:${id}`;
-
     if (type === 'farmer' && dataCache.farmers.has(id)) {
       const farmer = dataCache.farmers.get(id)!;
       return { name: farmer.name || 'Unknown Farmer', id: farmer._id, details: farmer };
@@ -69,7 +66,6 @@ const getNameFromId = async (
       case 'farmer':
         try {
           const farmers = await dashboardAPI.getFarmers();
-          // Cache all farmers
           farmers.forEach(f => dataCache.farmers.set(f._id, f));
           const farmer = farmers.find(f => f._id === id);
           return {
@@ -84,7 +80,6 @@ const getNameFromId = async (
       case 'animal':
         try {
           const animals = await dashboardAPI.getAnimals();
-          // Cache all animals
           animals.forEach(a => dataCache.animals.set(a._id, a));
           const animal = animals.find(a => a._id === id);
           return {
@@ -99,7 +94,6 @@ const getNameFromId = async (
       case 'vet':
         try {
           const vets = await dashboardAPI.getVets();
-          // Cache all vets
           vets.forEach(v => dataCache.vets.set(v._id, v));
           const vet = vets.find(v => v._id === id);
           return {
@@ -120,7 +114,8 @@ const getNameFromId = async (
 
 // Enhanced helper function to transform API treatment to local format
 const transformApiTreatment = async (apiTreatment: any, index: number): Promise<Treatment> => {
-  console.log(`Transforming treatment ${index}:`, apiTreatment);
+  console.log(`🔍 Transforming treatment ${index}:`, apiTreatment);
+  console.log(`🔍 Raw medicines data:`, apiTreatment.medicines);
 
   const treatmentDate = new Date(apiTreatment.treatment_start_date || apiTreatment.created_at || new Date());
 
@@ -142,8 +137,8 @@ const transformApiTreatment = async (apiTreatment: any, index: number): Promise<
   if (apiTreatment.withdrawal_ends_on) {
     const withdrawalEndDate = new Date(apiTreatment.withdrawal_ends_on);
     withdrawalDays = Math.ceil((withdrawalEndDate.getTime() - treatmentDate.getTime()) / (1000 * 3600 * 24));
-  } else if (apiTreatment.medicines && apiTreatment.medicines[0]?.withdrawal_days) {
-    withdrawalDays = apiTreatment.medicines[0].withdrawal_days;
+  } else if (apiTreatment.medicines && apiTreatment.medicines[0]?.withdrawal_period_days) {
+    withdrawalDays = apiTreatment.medicines[0].withdrawal_period_days;
   }
 
   // Calculate remaining days
@@ -164,23 +159,73 @@ const transformApiTreatment = async (apiTreatment: any, index: number): Promise<
     status = "Completed";
   }
 
-  // Get medicine details
+  // IMPROVED MEDICINE PARSING - Handle multiple formats
   let medicineName = "No medicine specified";
   let dosage = "Not specified";
 
-  if (apiTreatment.medicines && Array.isArray(apiTreatment.medicines) && apiTreatment.medicines.length > 0) {
-    // Handle multiple medicines
-    const medicines = apiTreatment.medicines;
-    if (medicines.length === 1) {
-      const med = medicines[0];
-      medicineName = med.name || "Unknown Medicine";
-      dosage = `${med.dosage || "Unknown"} ${med.unit || ""}`.trim();
-    } else {
-      // Multiple medicines
-      medicineName = `${medicines.length} medicines`;
-      dosage = "Multiple dosages";
+  console.log('🔍 Processing medicines:', apiTreatment.medicines);
+
+  if (apiTreatment.medicines) {
+    if (Array.isArray(apiTreatment.medicines) && apiTreatment.medicines.length > 0) {
+      const medicines = apiTreatment.medicines;
+
+      if (medicines.length === 1) {
+        const med = medicines[0];
+
+        // Check if medicine is an object with properties
+        if (typeof med === 'object' && med !== null) {
+          // Try different property names that might exist
+          medicineName = med.name || med.medicine_name || med.medicineName || "Unknown Medicine";
+
+          // Handle dosage with multiple possible formats
+          if (med.dosage) {
+            dosage = typeof med.dosage === 'string'
+              ? med.dosage
+              : `${med.dosage} ${med.unit || med.dosage_unit || 'ml'}`.trim();
+          } else if (med.dose) {
+            dosage = `${med.dose} ${med.unit || 'ml'}`;
+          } else {
+            dosage = "10 ml"; // Default dosage
+          }
+
+          console.log('✅ Medicine found:', { name: medicineName, dosage });
+        } else if (typeof med === 'string') {
+          // If medicine is just an ID string
+          medicineName = `Medicine ID: ${med.substring(0, 8)}`;
+          dosage = "See treatment details";
+        }
+      } else {
+        // Multiple medicines
+        const medicineNames = medicines
+          .map(m => {
+            if (typeof m === 'object' && m !== null) {
+              return m.name || m.medicine_name || 'Unknown';
+            }
+            return 'Medicine';
+          })
+          .filter(Boolean);
+
+        medicineName = medicineNames.length > 0
+          ? medicineNames.join(', ')
+          : `${medicines.length} medicines prescribed`;
+        dosage = "Multiple dosages";
+      }
     }
   }
+
+  // Fallback: check for alternative field names
+  if (medicineName === "No medicine specified") {
+    if (apiTreatment.medicine_name) {
+      medicineName = apiTreatment.medicine_name;
+      dosage = apiTreatment.dosage || apiTreatment.dose || "10 ml";
+    } else if (apiTreatment.diagnosis) {
+      // If no medicine but has diagnosis, show that
+      medicineName = "See diagnosis";
+      dosage = "Treatment prescribed";
+    }
+  }
+
+  console.log('📋 Final medicine data:', { medicineName, dosage });
 
   // Get animal type/species
   const animalType = animalInfo.details?.species ||
@@ -188,7 +233,7 @@ const transformApiTreatment = async (apiTreatment: any, index: number): Promise<
     "Unknown";
 
   // Handle symptoms array
-  const symptoms = apiTreatment.symptoms || [];
+  const symptoms = Array.isArray(apiTreatment.symptoms) ? apiTreatment.symptoms : [];
 
   return {
     id: apiTreatment._id || `T${index + 1}`,
@@ -204,8 +249,8 @@ const transformApiTreatment = async (apiTreatment: any, index: number): Promise<
     status: status,
     remainingDays: remainingDays,
     symptoms: symptoms,
-    diagnosis: apiTreatment.diagnosis,
-    notes: apiTreatment.notes
+    diagnosis: apiTreatment.diagnosis || "",
+    notes: apiTreatment.notes || ""
   };
 };
 
@@ -253,48 +298,6 @@ const mockTreatmentData: Treatment[] = [
     treatmentDate: "2025-11-25",
     status: "Completed",
     remainingDays: -6
-  },
-  {
-    id: "4",
-    farmer: "Prakash More",
-    farmerId: "F004",
-    animalId: "MH-DAI-2024-3456",
-    animalType: "Goat",
-    vetName: "Dr. Sunita Rane",
-    medicine: "Penicillin G",
-    dosage: "5 mg/kg",
-    withdrawalDays: 10,
-    treatmentDate: "2025-12-05",
-    status: "Active",
-    remainingDays: 5
-  },
-  {
-    id: "5",
-    farmer: "Rajesh Patil",
-    farmerId: "F001",
-    animalId: "MH-DAI-2024-7890",
-    animalType: "Cattle",
-    vetName: "Dr. Priya Deshmukh",
-    medicine: "Sulfamethazine",
-    dosage: "25 mg/kg",
-    withdrawalDays: 21,
-    treatmentDate: "2025-12-01",
-    status: "Active",
-    remainingDays: 7
-  },
-  {
-    id: "6",
-    farmer: "Anita Sharma",
-    farmerId: "F005",
-    animalId: "MH-DAI-2024-2468",
-    animalType: "Buffalo",
-    vetName: "Dr. Amit Shah",
-    medicine: "Enrofloxacin",
-    dosage: "12 mg/kg",
-    withdrawalDays: 28,
-    treatmentDate: "2025-11-20",
-    status: "Completed",
-    remainingDays: -3
   }
 ];
 
@@ -461,13 +464,6 @@ export default function TreatmentLog() {
   };
 
 
-  // Format array fields for display
-  const formatArrayField = (arr: any[] | undefined): string => {
-    if (!arr || !Array.isArray(arr)) return "None";
-    return arr.join(", ");
-  };
-
-
   // Open treatment details modal
   const openTreatmentDetails = (treatment: Treatment) => {
     setSelectedTreatment(treatment);
@@ -582,7 +578,7 @@ export default function TreatmentLog() {
         </div>
       </div>
 
-      {/* Search Filters - CORRECTED STRUCTURE */}
+      {/* Search Filters */}
       <div className="form-card">
         <h3>Search Treatments</h3>
 
@@ -820,7 +816,6 @@ export default function TreatmentLog() {
             flagged for violation. Please review these treatments for compliance issues.
           </p>
           <button className="btn-view-violations" onClick={() => {
-            // Filter to show only violations
             setSearchTerm('');
             setFarmerId('');
             setAnimalId('');
